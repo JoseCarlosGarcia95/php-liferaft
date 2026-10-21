@@ -28,7 +28,7 @@ def main():
     sdk = f"phpup:{entry['version']}-{metadata['abi_id'][:12]}-{architecture}-sdk"
     suffix = "" if platform == config["build"]["platform"] else "-" + architecture
     base = f"{prefix}:{entry['version']}-up.{entry['revision']}{suffix}"
-    source_url = os.environ.get("SOURCE_URL", "https://github.com/JoseCarlosGarcia95/php2shell-temporal-bugfix")
+    source_url = os.environ.get("SOURCE_URL", "https://github.com/JoseCarlosGarcia95/php2shell-backport-bugfix")
     extra = shlex.split(os.environ.get("DOCKER_BUILD_EXTRA_ARGS", ""))
     common = ["docker", "build", "--platform", platform, "--progress=plain", *extra]
     arguments = [
