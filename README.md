@@ -60,13 +60,16 @@ states there are no complete mitigations; updating is the only safe choice.
 The official fix adds `php_basic_early_rinit()`, which resets the same
 `BG(serialize)` / `BG(unserialize)` / `serialize_lock` state before
 `php_hash_environment()`, along with the session and allocator changes for
-CVE-2026-109618. PHP 8.2-8.5 use the official patched releases directly. For the
-EOL branches, `serializer-context-reset.patch` applies an equivalent early reset
-as independent hardening; it does not include the full official allocator fix.
+CVE-2026-109618. PHP 8.2-8.5 use the official patched releases directly. For
+PHP 7.0-7.4, 8.0 and 8.1, `official-early-rinit-backport.patch` ports the official
+early reset and the pre-RINIT session initialization guard; PHP 5.6 keeps the older
+independent reset. None of the EOL branches include the full official allocator
+fix, so they remain partial hardening.
 
-PHP's [official announcement](https://www.php.net/archive/2026.php#2026-10-20-1)
-schedules two critical fixes for 21 October 2026 at 14:00 UTC; the article's
-identifiers must be reconciled with the official advisories once published.
+The official [security advisory](https://www.php.net/archive/2026.php#2026-10-21-5)
+was published on 21 October 2026: PHP 8.2.35, 8.3.36, 8.4.27 and 8.5.12 fix both
+critical issues. The advisory states that there are no complete mitigations;
+updating is the only safe choice.
 
 ## Build source archives
 
