@@ -5,10 +5,10 @@
         "CVE-2026-109618",
         "CVE-2026-109619"
       ],
-      "url": "https://jackalsyn.com/posts/php-up-2026.html",
-      "summary": "Corrected research: serialize-state cross-request UAF; cached-pointer chain is dead at the addref",
-      "status": "unverified",
-      "notes": "The public bundle was corrected: the cached-pointer chain is not a UAF because Z_TRY_ADDREF(progress->data) keeps the progress array alive; CVE-2026-109619 maps to that dead chain. The real memory-safety bug is a serialize-state cross-request UAF at var.c:756 (data->n += 1), reachable on prefork SAPIs and not RCE. CVE-2026-109618 is the provisional mapping; vendor confirmation is pending. serializer-context-reset.patch resets the orphaned BG serializer state at request startup for PHP 5.6 and 7.0-8.5, with PHP 8.2 validated end-to-end."
+      "url": "https://www.php.net/archive/2026.php#2026-10-21-5",
+      "summary": "Official PHP advisory: RCE via OOM corruption and RCE via stale global state",
+      "status": "fixed-upstream",
+      "notes": "Official fixes are in PHP 8.2.35, 8.3.36, 8.4.27 and 8.5.12. All web SAPIs are affected, with the highest risk reported for Apache mod_php. PHP 5.6-8.1 are EOL and have no official fix; the local patches for those branches are independent hardening and are not a complete official-equivalent backport."
     }
   ],
   "fixes": []

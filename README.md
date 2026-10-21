@@ -20,23 +20,18 @@ come from PHP's official release metadata and are checked for every source build
 | 7.4 | 7.4.33 | [patches/7.4](patches/7.4) |
 | 8.0 | 8.0.30 | [patches/8.0](patches/8.0) |
 | 8.1 | 8.1.34 | [patches/8.1](patches/8.1) |
-| 8.2 | 8.2.34 | [patches/8.2](patches/8.2) |
-| 8.3 | 8.3.35 | [patches/8.3](patches/8.3) |
-| 8.4 | 8.4.26 | [patches/8.4](patches/8.4) |
-| 8.5 | 8.5.11 | [patches/8.5](patches/8.5) |
+| 8.2 | 8.2.35 | official release |
+| 8.3 | 8.3.36 | official release |
+| 8.4 | 8.4.27 | official release |
+| 8.5 | 8.5.12 | official release |
 
 ## Fixed CVEs
 
-The table is generated from [`security.json`](security.json). Each claim identifies
-one branch, its first fixed project revision, the applied patches, and regression
-references. Rows marked `independent` are source-analysis corrections, not official
-PHP patches. No CVE is marked fixed until the vendor publishes the mapping.
-
-The corrected public research shows the cached-pointer chain is **not** a UAF:
-`Z_TRY_ADDREF(progress->data)` keeps the progress array alive. The counter patch is
-hardening, not a CVE fix. The real reported memory-safety issue is a serialize-state
-cross-request UAF; `serializer-context-reset.patch` addresses it provisionally for
-PHP 5.6 and 7.0 through 8.5.
+PHP 8.2.35, 8.3.36, 8.4.27 and 8.5.12 contain the official fixes for
+CVE-2026-109618 and CVE-2026-109619 and are the bases used for those branches.
+No local CVE fix is claimed for the EOL branches: their patches are independent
+hardening, not a complete official-equivalent backport. The generated table below
+lists only independently verified local fixes.
 
 <!-- phpup:fixed-cves:start -->
 
@@ -46,34 +41,28 @@ No independently verified CVE fixes are claimed yet. See the reported issues bel
 
 ### Reported upload-progress issues
 
-The [third-party bundle](https://jackalsyn.com/posts/php-up-2026.html) was corrected
-on 2026-10-21:
+The [official PHP advisory](https://www.php.net/archive/2026.php#2026-10-21-5)
+describes two critical remote-code-execution issues:
 
-- The cached-pointer chain is **dead at the addref**. `Z_TRY_ADDREF(progress->data)`
-  keeps the target array alive, so the stale bucket pointers do not create a UAF.
-  `CVE-2026-109619` maps to this non-vulnerable chain in the corrected research.
-- The real memory-safety issue is a serialize-state cross-request UAF at
-  `var.c:756` (`data->n += 1` in `php_add_var_hash`). A pre-RINIT OOM leaves
-  `BG(serialize)` pointing at freed request memory; a later request on a surviving
-  prefork worker reuses it. The corrected research rates it as non-RCE and
-  prefork-only (php-fpm, LSAPI and CGI exit on the arming request).
-- `CVE-2026-109618` is the provisional mapping for the serialize-state UAF; vendor
-  confirmation is still pending.
+- **CVE-2026-109618, RCE via OOM corruption:** out-of-memory handling can
+  interrupt PHP while request data is only partially initialized; cleanup may
+  then treat the invalid data as valid.
+- **CVE-2026-109619, RCE via stale global state:** request-owned internal state
+  can survive after its backing memory is freed; a later request on the same
+  worker may use it before normal initialization resets it.
 
-Our local harness reproduced the orphan and the pre-RINIT reuse. The reset patch
-blocks that reuse; the counter patch remains independent hardening.
+All web SAPIs are affected, with the highest risk reported for Apache mod_php.
+The official patched releases are 8.2.35, 8.3.36, 8.4.27 and 8.5.12. The advisory
+states there are no complete mitigations; updating is the only safe choice.
 
 ### Serializer context lifecycle
 
-The reset is included in the PHP 5.6 and 7.0 through 8.5 patch series as
-`serializer-context-reset.patch`. It resets `BG(serialize)`, `BG(unserialize)` and
-`serialize_lock` at the start of request startup, before `php_hash_environment()`,
-so a worker cannot reuse an orphaned context from a previous request. PHP 8.2
-(`up.3`) was validated end-to-end with the instrumented harness; PHP 7.0 and 8.5
-were built and smoke-tested; PHP 5.6 was built and smoke-tested under amd64
-emulation. The remaining branches use the same change and are validated by patch
-application and their CI build. This is an independent correction, not an official
-PHP patch.
+The official fix adds `php_basic_early_rinit()`, which resets the same
+`BG(serialize)` / `BG(unserialize)` / `serialize_lock` state before
+`php_hash_environment()`, along with the session and allocator changes for
+CVE-2026-109618. PHP 8.2-8.5 use the official patched releases directly. For the
+EOL branches, `serializer-context-reset.patch` applies an equivalent early reset
+as independent hardening; it does not include the full official allocator fix.
 
 PHP's [official announcement](https://www.php.net/archive/2026.php#2026-10-20-1)
 schedules two critical fixes for 21 October 2026 at 14:00 UTC; the article's

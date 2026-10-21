@@ -1,3 +1,1 @@
-# Patches apply to PHP 8.2.34 in the order listed here.
-session-upload-progress-counters.patch
-serializer-context-reset.patch
+# PHP 8.2.35 includes the official security fixes; no local patches.

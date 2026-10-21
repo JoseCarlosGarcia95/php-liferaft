@@ -1,10 +1,9 @@
 # PHP 8.0 patches
 
-> **Corrected research (2026-10-21):** The public bundle now confirms this
-> cached-pointer chain is **dead at the addref** (`Z_TRY_ADDREF(progress->data)`
-> keeps the target array alive). This patch is independent hardening for stale
-> counters, **not a CVE fix**. The real memory-safety issue is the serialize-state
-> cross-request UAF addressed by `serializer-context-reset.patch`.
+> **Official advisory (2026-10-21):** CVE-2026-109618 is an OOM-corruption
+> RCE and CVE-2026-109619 is an RCE via stale global state. This EOL backport is
+> independent hardening, not a complete official-equivalent fix. Official patched
+> releases exist only for PHP 8.2.35, 8.3.36, 8.4.27 and 8.5.12.
 
 
 ## `session-upload-progress-counters.patch`
@@ -42,19 +41,17 @@ cleanup, and passes the serializer and cancellation checks.
 ## `serializer-context-reset.patch`
 
 - Category: security hardening (independent, request lifecycle)
-- Reported issue: cross-request reuse of orphaned `BG(serialize)` /
-  `BG(unserialize)` contexts after a pre-RINIT OOM (`CVE-2026-109618` per the
-  corrected research; vendor mapping pending)
+- Reported issue: CVE-2026-109619, RCE via stale global state (official
+  advisory); this EOL backport is independent hardening
 - Affected upstream base: PHP 8.0.30
 - Relationship to the counter patch: independent root cause; neither patch fixes
   the other
 
-The corrected analysis of the public bundle identifies the real memory-safety
-issue as a serialize-state cross-request UAF: an OOM aborts request startup after
-`PHP_VAR_SERIALIZE_INIT` but before its matching destroy, leaving
-`BG(serialize).level > 0` with `data` pointing at request memory. On a prefork
-SAPI the child survives; the next request reuses the dangling context in
-`php_add_var_hash()` (`var.c`, `data->n += 1`) before the normal RINIT reset.
+The official advisory identifies CVE-2026-109619 as an RCE via stale global
+state: an OOM can leave request-owned serializer globals pointing at freed
+memory, and a later request on the same worker can reuse them before normal
+initialization. This EOL backport applies the early reset only; it is not the
+full official allocator/session fix.
 
 The patch resets `BG(serialize)`, `BG(unserialize)`, and `serialize_lock` at the
 start of `php_request_startup()`, immediately before `php_hash_environment()`.
@@ -62,9 +59,8 @@ It does not free the old pointer, because that memory belongs to the previous
 request and may already be freed; it only prevents reuse. The normal RINIT
 reset remains as a second guard.
 
-This is an independent correction, not an official PHP patch. It blocks the
-demonstrated cross-request reuse; the corrected research rates the impact as a
-memory-safety bug (not RCE), and vendor CVE mapping remains pending.
+This is an independent EOL backport, not an official PHP patch. Official
+patched releases exist for PHP 8.2.35, 8.3.36, 8.4.27 and 8.5.12 only.
 
 ### Regression evidence
 

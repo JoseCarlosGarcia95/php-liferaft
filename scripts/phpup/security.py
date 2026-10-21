@@ -20,7 +20,7 @@ def validate_security(root, config):
     for report in security["reported"]:
         if not report.get("ids") or not all(CVE.fullmatch(item) for item in report["ids"]):
             raise ValueError("invalid reported CVE identifiers")
-        if urlparse(report.get("url", "")).scheme != "https" or report.get("status") not in {"unverified", "under-review"}:
+        if urlparse(report.get("url", "")).scheme != "https" or report.get("status") not in {"unverified", "under-review", "fixed-upstream"}:
             raise ValueError("invalid reported advisory")
     for record in security["fixes"]:
         required = {"cve", "branch", "first_revision", "advisory", "summary", "patches", "tests", "origin"}
