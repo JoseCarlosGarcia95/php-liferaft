@@ -1,5 +1,12 @@
 # PHP 8.0 patches
 
+> **Corrected research (2026-10-21):** The public bundle now confirms this
+> cached-pointer chain is **dead at the addref** (`Z_TRY_ADDREF(progress->data)`
+> keeps the target array alive). This patch is independent hardening for stale
+> counters, **not a CVE fix**. The real memory-safety issue is the serialize-state
+> cross-request UAF addressed by `serializer-context-reset.patch`.
+
+
 ## `session-upload-progress-counters.patch`
 
 - Category: security hardening (independent)
