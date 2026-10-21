@@ -39,12 +39,13 @@ def main():
         "--build-arg", f"PROJECT_REVISION={entry['revision']}",
     ]
     if args.mode == "images":
+        image_common = common + ["--load"]
         try:
             revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True, stderr=subprocess.DEVNULL).strip()
         except subprocess.CalledProcessError:
             revision = "uncommitted"
         for target, tag in (("sdk", sdk), ("cli", base + "-cli"), ("fpm", base + "-fpm")):
-            command = common + ["-f", "docker/Dockerfile", "--target", target, "-t", tag, *arguments,
+            command = image_common + ["-f", "docker/Dockerfile", "--target", target, "-t", tag, *arguments,
                 "--build-arg", f"BASE_IMAGE={config['build']['base_image']}",
                 "--build-arg", f"DEBIAN_SNAPSHOT={config['build']['debian_snapshot']}",
                 "--build-arg", f"MAKE_JOBS={os.environ.get('MAKE_JOBS', '4')}",
