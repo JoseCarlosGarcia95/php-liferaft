@@ -29,11 +29,16 @@ come from PHP's official release metadata and are checked for every source build
 
 The table is generated from [`security.json`](security.json). Each claim identifies
 one branch, its first fixed project revision, the applied patches, and regression
-references. An independent correction remains distinguishable from an upstream fix.
+references. Rows marked `independent` are source-analysis corrections, not official
+PHP patches. For these two identifiers, the mapping comes from the linked report
+until PHP publishes its advisory.
 
 <!-- phpup:fixed-cves:start -->
 
-No independently verified CVE fixes are claimed yet. See the reported issues below.
+| CVE | Branch | First fixed build | Patches | Regression | Origin |
+| --- | --- | --- | --- | --- | --- |
+| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.2 | 8.2.34-up.1 | [session-upload-progress-counters.patch](patches/8.2/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
+| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.2 | 8.2.34-up.1 | [session-upload-progress-counters.patch](patches/8.2/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
 
 <!-- phpup:fixed-cves:end -->
 
@@ -41,8 +46,9 @@ No independently verified CVE fixes are claimed yet. See the reported issues bel
 
 The [third-party report](https://jackalsyn.com/posts/php-up-2026.html) attributes
 cached-counter lifetime issues in `ext/session` to `CVE-2026-109618` and
-`CVE-2026-109619`. Their attribution and affected-branch coverage are under
-independent investigation. They are not currently listed as corrected CVEs.
+`CVE-2026-109619`. The table above records independent PHP 8.2 corrections for both
+identifiers. Their official attribution and affected-branch coverage remain under
+investigation; the entries do not claim coverage for any other branch.
 
 The checked PHP 8.2.34 source retains a reference to the progress root array before
 publishing it into session data. PHP 5.6 uses a different zval layout. The presence
