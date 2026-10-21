@@ -9,6 +9,11 @@ on:
         description: Single branch to publish; empty publishes the full matrix
         required: false
         type: string
+      patched_only:
+        description: Publish only branches with a non-empty patch series
+        required: false
+        type: boolean
+        default: true
       tag:
         description: Release tag, for example v0.1.0
         required: true
@@ -44,9 +49,12 @@ jobs:
         id: matrix
         env:
           BRANCH: ${{ inputs.branch }}
+          PATCHED_ONLY: ${{ inputs.patched_only }}
         run: |
           if [ -n "$BRANCH" ]; then
             python3 scripts/phpup.py matrix --branch "$BRANCH" > matrix.json
+          elif [ "$PATCHED_ONLY" = "true" ]; then
+            python3 scripts/phpup.py matrix --patched > matrix.json
           else
             python3 scripts/phpup.py matrix > matrix.json
           fi

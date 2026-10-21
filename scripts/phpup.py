@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 
-from phpup.manifest import load_manifest, version_entry
+from phpup.manifest import load_manifest, patch_series, version_entry
 from phpup.source import prepare
 from phpup.security import readme_text
 
@@ -17,7 +17,9 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("validate")
     matrix = commands.add_parser("matrix")
-    matrix.add_argument("--branch")
+    selection = matrix.add_mutually_exclusive_group()
+    selection.add_argument("--branch")
+    selection.add_argument("--patched", action="store_true")
     info = commands.add_parser("info")
     info.add_argument("--branch", required=True)
     sources = commands.add_parser("prepare")
@@ -38,6 +40,8 @@ def main():
         if args.branch:
             version_entry(config, args.branch)
             versions = [entry for entry in versions if entry["branch"] == args.branch]
+        elif args.patched:
+            versions = [entry for entry in versions if patch_series(args.root, entry["branch"])]
         print(json.dumps({"branch": [entry["branch"] for entry in versions]}))
     elif args.command == "info":
         entry = version_entry(config, args.branch)

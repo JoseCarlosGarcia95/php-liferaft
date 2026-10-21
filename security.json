@@ -1,11 +1,14 @@
 {
   "reported": [
     {
-      "ids": ["CVE-2026-109618", "CVE-2026-109619"],
+      "ids": [
+        "CVE-2026-109618",
+        "CVE-2026-109619"
+      ],
       "url": "https://jackalsyn.com/posts/php-up-2026.html",
       "summary": "Reported session.upload_progress cached-counter lifetime issues",
       "status": "unverified",
-      "notes": "Official advisory mapping is pending. The independent 8.2 correction removes the retained HashTable bucket pointers and is covered by the multipart regression below."
+      "notes": "Official advisory mapping is pending. Independent corrections cover PHP 7.0 through 8.5; PHP 5.6 uses standalone counter zvals and does not reproduce the cached-bucket defect."
     }
   ],
   "fixes": [
@@ -15,8 +18,13 @@
       "first_revision": 1,
       "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
       "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
-      "patches": ["patches/8.2/session-upload-progress-counters.patch"],
-      "tests": ["tests/smoke.py", "tests/fixtures/upload.php"],
+      "patches": [
+        "patches/8.2/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
       "origin": "independent"
     },
     {
@@ -25,8 +33,313 @@
       "first_revision": 1,
       "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
       "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
-      "patches": ["patches/8.2/session-upload-progress-counters.patch"],
-      "tests": ["tests/smoke.py", "tests/fixtures/upload.php"],
+      "patches": [
+        "patches/8.2/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "7.0",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/7.0/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "7.0",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/7.0/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "7.1",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/7.1/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "7.1",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/7.1/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "7.2",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/7.2/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "7.2",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/7.2/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "7.3",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/7.3/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "7.3",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/7.3/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "7.4",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/7.4/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "7.4",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/7.4/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "8.0",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/8.0/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "8.0",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/8.0/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "8.1",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/8.1/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "8.1",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/8.1/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "8.3",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/8.3/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "8.3",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/8.3/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "8.4",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/8.4/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "8.4",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/8.4/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109618",
+      "branch": "8.5",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress current-file counter lifetime issue",
+      "patches": [
+        "patches/8.5/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
+      "origin": "independent"
+    },
+    {
+      "cve": "CVE-2026-109619",
+      "branch": "8.5",
+      "first_revision": 1,
+      "advisory": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Independent correction for the reported session.upload_progress post-bytes counter lifetime issue",
+      "patches": [
+        "patches/8.5/session-upload-progress-counters.patch"
+      ],
+      "tests": [
+        "tests/smoke.py",
+        "tests/fixtures/upload.php"
+      ],
       "origin": "independent"
     }
   ]
