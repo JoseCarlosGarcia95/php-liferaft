@@ -37,7 +37,7 @@ COPY --from=compiler /usr/local/ /usr/local/
 RUN mkdir -p /var/lib/php/sessions /var/www/html \
     && chmod 1777 /var/lib/php/sessions
 ARG SOURCE_SHA256
-ARG SOURCE_URL=https://github.com/JoseCarlosGarcia95/php-liferaft
+ARG SOURCE_URL=https://github.com/JoseCarlosGarcia95/php2shell-temporal-bugfix
 ARG SOURCE_VERSION=unknown
 ARG PROJECT_REVISION=0
 ARG REPOSITORY_REVISION=uncommitted

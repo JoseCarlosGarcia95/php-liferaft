@@ -1,4 +1,4 @@
-# php-liferaft
+# php2shell-temporal-bugfix
 
 Inspectable PHP security backports, source archives, and Docker CLI/FPM builds.
 This personal project covers final EOL releases and selected current PHP releases.
@@ -186,7 +186,7 @@ jobs that are merely configured.
 GitHub Actions validates inputs, builds the branch matrix, and uploads source,
 module, and tested runtime-image artifacts. Manual runs support one branch or all.
 Version-tag workflows publish the tested images to
-`ghcr.io/josecarlosgarcia95/php-liferaft` and attach source/module artifacts to
+`ghcr.io/josecarlosgarcia95/php2shell-temporal-bugfix` and attach source/module artifacts to
 GitHub Releases after the matrix succeeds. A changed build input requires a new
 project revision before reusing a versioned public tag.
 
