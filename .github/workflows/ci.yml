@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Single PHP branch to build; empty builds the full matrix
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Validate manifests
+        run: python3 scripts/phpup.py validate
+      - name: Check generated CVE table
+        run: python3 scripts/phpup.py readme --check
+      - name: Select build matrix
+        id: matrix
+        env:
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ inputs.branch }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ -n "$BRANCH" ]; then
+            python3 scripts/phpup.py matrix --branch "$BRANCH" > matrix.json
+          elif [ "$EVENT" = "pull_request" ]; then
+            mapfile -t changed < <(git diff --name-only "origin/$BASE_REF...HEAD" | sed -n 's#^patches/\([^/]*\)/.*#\1#p' | sort -u)
+            if [ "${#changed[@]}" -eq 0 ]; then
+              changed=(8.2)
+            fi
+            python3 - "${changed[@]}" > matrix.json <<'PY'
+          import json
+          import sys
+          print(json.dumps({"branch": list(dict.fromkeys(sys.argv[1:]))}))
+          PY
+          else
+            python3 scripts/phpup.py matrix > matrix.json
+          fi
+          cat matrix.json
+          echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.validate.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: docker/setup-buildx-action@v3
+      - name: Enable Buildx for docker build
+        run: docker buildx install
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: phpup-sources-${{ hashFiles('versions.json') }}
+      - name: Prepare source
+        run: python3 scripts/phpup.py prepare --branch "${{ matrix.branch }}"
+      - name: Build CLI, FPM, and SDK
+        env:
+          MAKE_JOBS: 4
+          DOCKER_BUILD_EXTRA_ARGS: --cache-from type=gha,scope=phpup-${{ matrix.branch }} --cache-to type=gha,mode=max,scope=phpup-${{ matrix.branch }}
+        run: scripts/build-images.sh "${{ matrix.branch }}"
+      - name: Verify runtimes
+        run: python3 scripts/verify.py --branch "${{ matrix.branch }}"
+      - name: Build session-only module
+        run: scripts/build-session.sh "${{ matrix.branch }}"
+      - name: Verify session-only module
+        run: python3 scripts/verify.py --branch "${{ matrix.branch }}" --module
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phpup-${{ matrix.branch }}
+          if-no-files-found: error
+          path: |
+            dist/${{ matrix.branch }}/*.tar.xz
+            dist/${{ matrix.branch }}/*.json
+            dist/${{ matrix.branch }}/*.sha256
+            dist/${{ matrix.branch }}/session/**/*

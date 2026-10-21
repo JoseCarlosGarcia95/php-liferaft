@@ -1,0 +1,12 @@
+{
+  "reported": [
+    {
+      "ids": ["CVE-2026-109618", "CVE-2026-109619"],
+      "url": "https://jackalsyn.com/posts/php-up-2026.html",
+      "summary": "Reported session.upload_progress cached-counter lifetime issues",
+      "status": "unverified",
+      "notes": "Identifiers and affected branches await independent confirmation. A retained root reference exists in the checked upstream sources."
+    }
+  ],
+  "fixes": []
+}

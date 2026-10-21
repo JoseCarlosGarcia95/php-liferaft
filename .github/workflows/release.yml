@@ -1,0 +1,152 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Single branch to publish; empty publishes the full matrix
+        required: false
+        type: string
+      tag:
+        description: Release tag, for example v0.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Validate manifests
+        run: python3 scripts/phpup.py validate
+      - name: Check generated CVE table
+        run: python3 scripts/phpup.py readme --check
+      - name: Select build matrix
+        id: matrix
+        env:
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          if [ -n "$BRANCH" ]; then
+            python3 scripts/phpup.py matrix --branch "$BRANCH" > matrix.json
+          else
+            python3 scripts/phpup.py matrix > matrix.json
+          fi
+          cat matrix.json
+          echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.validate.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: docker/setup-buildx-action@v3
+      - name: Enable Buildx for docker build
+        run: docker buildx install
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: phpup-sources-${{ hashFiles('versions.json') }}
+      - name: Resolve image prefix
+        run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+      - name: Authenticate to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Prepare source
+        run: python3 scripts/phpup.py prepare --branch "${{ matrix.branch }}"
+      - name: Build CLI, FPM, and SDK
+        env:
+          MAKE_JOBS: 4
+          DOCKER_BUILD_EXTRA_ARGS: --cache-from type=gha,scope=phpup-${{ matrix.branch }} --cache-to type=gha,mode=max,scope=phpup-${{ matrix.branch }}
+        run: scripts/build-images.sh "${{ matrix.branch }}"
+      - name: Verify runtimes
+        run: python3 scripts/verify.py --branch "${{ matrix.branch }}"
+      - name: Build session-only module
+        run: scripts/build-session.sh "${{ matrix.branch }}"
+      - name: Verify session-only module
+        run: python3 scripts/verify.py --branch "${{ matrix.branch }}" --module
+      - name: Publish tested images
+        env:
+          BRANCH: ${{ matrix.branch }}
+        run: |
+          tags=$(python3 scripts/verify.py --branch "$BRANCH" --print-tags)
+          cli=$(printf '%s' "$tags" | jq -r .cli)
+          fpm=$(printf '%s' "$tags" | jq -r .fpm)
+          version=$(printf '%s' "$tags" | jq -r .version)
+          revision=$(printf '%s' "$tags" | jq -r .revision)
+          for variant in cli fpm; do
+            if [ "$variant" = "cli" ]; then image=$cli; else image=$fpm; fi
+            docker tag "$image" "$IMAGE_PREFIX:${RELEASE_TAG}-${version}-up.${revision}-${variant}"
+            docker tag "$image" "$IMAGE_PREFIX:${BRANCH}-${variant}"
+            docker push "$IMAGE_PREFIX:${RELEASE_TAG}-${version}-up.${revision}-${variant}"
+            docker push "$IMAGE_PREFIX:${BRANCH}-${variant}"
+          done
+      - name: Stage release assets
+        env:
+          BRANCH: ${{ matrix.branch }}
+        run: |
+          mkdir -p release-assets
+          cp dist/"$BRANCH"/*.tar.xz dist/"$BRANCH"/*.json dist/"$BRANCH"/*.sha256 release-assets/
+          for directory in dist/"$BRANCH"/session/*; do
+            architecture=$(basename "$directory")
+            tar -C "$directory" -cJf "release-assets/${BRANCH}-${architecture}-session.tar.xz" session.so session.json session.sha256
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phpup-${{ matrix.branch }}
+          if-no-files-found: error
+          path: release-assets/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mapfile -d '' files < <(find release -type f -print0 | sort -z)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "no release assets were produced" >&2
+            exit 1
+          fi
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${files[@]}" --generate-notes --title "$RELEASE_TAG"
+          fi

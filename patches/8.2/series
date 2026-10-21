@@ -1,0 +1,2 @@
+# Patches apply to PHP 8.2.34 in the order listed here.
+session-upload-progress-counters.patch
