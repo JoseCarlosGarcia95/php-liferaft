@@ -1,3 +1,2 @@
-# Patches apply to PHP 7.0 in the order listed here.
-session-upload-progress-counters.patch
-serializer-context-reset.patch
+# Patches apply to PHP 7.0.33 in the order listed here.
+official-early-rinit-backport.patch

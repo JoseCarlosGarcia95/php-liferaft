@@ -1,0 +1,117 @@
+diff --git a/ext/session/session.c b/ext/session/session.c
+index 8fb6dd2c..fe2be9fa 100644
+--- a/ext/session/session.c
++++ b/ext/session/session.c
+@@ -3177,12 +3177,20 @@ static int php_session_rfc1867_callback(unsigned int event, void *event_data, vo
+ 	if (!PS(rfc1867_enabled)) {
+ 		return retval;
+ 	}
++	if (PG(modules_activated)) {
++		/* request_parse_body(). Do not run here as it corrupts the session. */
++		return retval;
++	}
+ 
+ 	progress = PS(rfc1867_progress);
+ 
+ 	switch(event) {
+ 		case MULTIPART_EVENT_START: {
+ 			multipart_event_start *data = (multipart_event_start *) event_data;
++
++			/* This runs before RINIT, so we need to clear these early. */
++			php_rinit_session_globals();
++
+ 			progress = ecalloc(1, sizeof(php_session_rfc1867_progress));
+ 			progress->content_length = data->content_length;
+ 			progress->sname_len  = strlen(PS(session_name));
+diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
+index 64f27ef5..710db449 100644
+--- a/ext/standard/basic_functions.c
++++ b/ext/standard/basic_functions.c
+@@ -3877,6 +3877,18 @@ PHP_RSHUTDOWN_FUNCTION(basic) /* {{{ */
+ }
+ /* }}} */
+ 
++/* Called from php_request_startup(), before any request data is processed. */
++PHPAPI void php_basic_early_rinit(void)
++{
++	/* The session upload progress handler (un)serializes the session and
++	 * registers the session id with the URL rewriter from
++	 * php_hash_environment(), before RINIT. */
++	BG(serialize_lock) = 0;
++	memset(&BG(serialize), 0, sizeof(BG(serialize)));
++	memset(&BG(unserialize), 0, sizeof(BG(unserialize)));
++	php_url_scanner_early_rinit();
++}
++
+ PHP_MINFO_FUNCTION(basic) /* {{{ */
+ {
+ 	php_info_print_table_start();
+diff --git a/ext/standard/basic_functions.h b/ext/standard/basic_functions.h
+index 7e0fa6b7..06009517 100644
+--- a/ext/standard/basic_functions.h
++++ b/ext/standard/basic_functions.h
+@@ -43,6 +43,7 @@ PHP_MINIT_FUNCTION(basic);
+ PHP_MSHUTDOWN_FUNCTION(basic);
+ PHP_RINIT_FUNCTION(basic);
+ PHP_RSHUTDOWN_FUNCTION(basic);
++PHPAPI void php_basic_early_rinit(void);
+ PHP_MINFO_FUNCTION(basic);
+ 
+ PHP_FUNCTION(constant);
+diff --git a/ext/standard/url_scanner_ex.h b/ext/standard/url_scanner_ex.h
+index 6a8b8fdb..9b39db19 100644
+--- a/ext/standard/url_scanner_ex.h
++++ b/ext/standard/url_scanner_ex.h
+@@ -62,4 +62,6 @@ typedef struct {
+ 	HashTable *tags;
+ } url_adapt_state_ex_t;
+ 
++void php_url_scanner_early_rinit(void);
++
+ #endif
+diff --git a/ext/standard/url_scanner_ex.re b/ext/standard/url_scanner_ex.re
+index 1877e689..40d77287 100644
+--- a/ext/standard/url_scanner_ex.re
++++ b/ext/standard/url_scanner_ex.re
+@@ -661,6 +661,13 @@ static int php_url_scanner_ex_activate(int type)
+ 	return SUCCESS;
+ }
+ 
++void php_url_scanner_early_rinit(void)
++{
++	/* See php_basic_early_rinit() */
++	php_url_scanner_ex_activate(1);
++	php_url_scanner_ex_activate(0);
++}
++
+ static int php_url_scanner_ex_deactivate(int type)
+ {
+ 	url_adapt_state_ex_t *ctx;
+diff --git a/main/main.c b/main/main.c
+index 0b33b2b5..216398ad 100644
+--- a/main/main.c
++++ b/main/main.c
+@@ -1877,6 +1877,7 @@ int php_request_startup(void)
+ 		/* We turn this off in php_execute_script() */
+ 		/* PG(during_request_startup) = 0; */
+ 
++		php_basic_early_rinit();
+ 		php_hash_environment();
+ 		zend_activate_modules();
+ 		PG(modules_activated)=1;
+--- a/ext/standard/url_scanner_ex.c
++++ b/ext/standard/url_scanner_ex.c
+@@ -1097,6 +1097,13 @@
+ 	return SUCCESS;
+ }
+ 
++void php_url_scanner_early_rinit(void)
++{
++	/* See php_basic_early_rinit() */
++	php_url_scanner_ex_activate(1);
++	php_url_scanner_ex_activate(0);
++}
++
+ static int php_url_scanner_ex_deactivate(int type)
+ {
+ 	url_adapt_state_ex_t *ctx;
