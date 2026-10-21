@@ -34,6 +34,7 @@ COPY docker/php-apache.ini /usr/local/etc/php/php.ini
 RUN a2dismod mpm_event \
     && a2enmod mpm_prefork \
     && if [ -f /etc/apache2/mods-available/php.load ]; then a2enmod php; \
+       elif [ -f /etc/apache2/mods-available/php7.load ]; then a2enmod php7; \
        elif [ -f /etc/apache2/mods-available/php5.load ]; then a2enmod php5; \
        else echo 'no Apache PHP module was installed' >&2; exit 1; fi \
     && mkdir -p /var/lib/php/sessions /var/www/html \
