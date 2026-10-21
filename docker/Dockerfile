@@ -56,3 +56,14 @@ FROM runtime AS fpm
 EXPOSE 9000
 STOPSIGNAL SIGQUIT
 ENTRYPOINT ["php-fpm", "-F", "-y", "/usr/local/etc/php-fpm.conf"]
+
+FROM sdk AS session-module
+ARG SOURCE_ARCHIVE
+ARG SOURCE_SHA256
+COPY ${SOURCE_ARCHIVE} /tmp/php.tar.xz
+COPY docker/build-session.sh /usr/local/bin/build-session
+RUN printf '%s  /tmp/php.tar.xz\n' "$SOURCE_SHA256" | sha256sum -c - \
+    && sh /usr/local/bin/build-session /tmp/php.tar.xz
+
+FROM scratch AS session-export
+COPY --from=session-module /module/ /

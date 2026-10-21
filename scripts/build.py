@@ -53,11 +53,12 @@ def main():
             subprocess.run(command, cwd=root, check=True)
         print(json.dumps({"cli": base + "-cli", "fpm": base + "-fpm", "sdk": sdk}))
     else:
-        sdk_id = subprocess.check_output(["docker", "image", "inspect", sdk, "--format", "{{.Id}}"], text=True).strip()
         output = root / "dist" / args.branch / "session" / architecture
         output.mkdir(parents=True, exist_ok=True)
-        subprocess.run(common + ["-f", "docker/session.Dockerfile", "--target", "session-module", *arguments,
-            "--build-arg", f"SDK_IMAGE={sdk}", "--build-arg", f"SDK_IMAGE_ID={sdk_id}",
+        subprocess.run(common + ["-f", "docker/Dockerfile", "--target", "session-export", *arguments,
+            "--build-arg", f"BASE_IMAGE={config['build']['base_image']}",
+            "--build-arg", f"DEBIAN_SNAPSHOT={config['build']['debian_snapshot']}",
+            "--build-arg", f"MAKE_JOBS={os.environ.get('MAKE_JOBS', '4')}",
             "--output", f"type=local,dest={output}", "."], cwd=root, check=True)
         print(output)
 

@@ -26,7 +26,7 @@ source = json.load(open('/tmp/session-source/phpup/manifest.json'))
 extension_dir = subprocess.check_output(['php-config', '--extension-dir'], text=True).strip()
 metadata = {
     'source': source,
-    'sdk_image_id': os.environ['SDK_IMAGE_ID'],
+    'sdk_image_id': os.environ.get('SDK_IMAGE_ID', source['abi_id']),
     'architecture': platform.machine(),
     'php_api': extension_dir.rsplit('-', 1)[-1],
     'php_build': json.loads(subprocess.check_output(['php', '-n', '-r',
