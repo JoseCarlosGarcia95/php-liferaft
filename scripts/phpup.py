@@ -19,6 +19,7 @@ def main():
     matrix = commands.add_parser("matrix")
     selection = matrix.add_mutually_exclusive_group()
     selection.add_argument("--branch")
+    selection.add_argument("--branches")
     selection.add_argument("--patched", action="store_true")
     info = commands.add_parser("info")
     info.add_argument("--branch", required=True)
@@ -40,6 +41,11 @@ def main():
         if args.branch:
             version_entry(config, args.branch)
             versions = [entry for entry in versions if entry["branch"] == args.branch]
+        elif args.branches:
+            requested = [item.strip() for item in args.branches.split(",") if item.strip()]
+            for item in requested:
+                version_entry(config, item)
+            versions = [entry for entry in versions if entry["branch"] in requested]
         elif args.patched:
             versions = [entry for entry in versions if patch_series(args.root, entry["branch"])]
         print(json.dumps({"branch": [entry["branch"] for entry in versions]}))

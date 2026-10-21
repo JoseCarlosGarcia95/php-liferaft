@@ -14,6 +14,10 @@ on:
         required: false
         type: boolean
         default: true
+      branches:
+        description: Comma-separated branches to publish, for example 8.2,8.3
+        required: false
+        type: string
       tag:
         description: Release tag, for example v0.1.0
         required: true
@@ -49,9 +53,12 @@ jobs:
         id: matrix
         env:
           BRANCH: ${{ inputs.branch }}
+          BRANCHES: ${{ inputs.branches }}
           PATCHED_ONLY: ${{ inputs.patched_only }}
         run: |
-          if [ -n "$BRANCH" ]; then
+          if [ -n "$BRANCHES" ]; then
+            python3 scripts/phpup.py matrix --branches "$BRANCHES" > matrix.json
+          elif [ -n "$BRANCH" ]; then
             python3 scripts/phpup.py matrix --branch "$BRANCH" > matrix.json
           elif [ "$PATCHED_ONLY" = "true" ]; then
             python3 scripts/phpup.py matrix --patched > matrix.json
