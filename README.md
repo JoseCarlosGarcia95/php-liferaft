@@ -30,59 +30,50 @@ come from PHP's official release metadata and are checked for every source build
 The table is generated from [`security.json`](security.json). Each claim identifies
 one branch, its first fixed project revision, the applied patches, and regression
 references. Rows marked `independent` are source-analysis corrections, not official
-PHP patches. For these two identifiers, the mapping comes from the linked report
-until PHP publishes its advisory.
+PHP patches. No CVE is marked fixed until the vendor publishes the mapping.
+
+The corrected public research shows the cached-pointer chain is **not** a UAF:
+`Z_TRY_ADDREF(progress->data)` keeps the progress array alive. The counter patch is
+hardening, not a CVE fix. The real reported memory-safety issue is a serialize-state
+cross-request UAF; `serializer-context-reset.patch` addresses it provisionally for
+PHP 5.6 and 7.0 through 8.5.
 
 <!-- phpup:fixed-cves:start -->
 
-| CVE | Branch | First fixed build | Patches | Regression | Origin |
-| --- | --- | --- | --- | --- | --- |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 7.0 | 7.0.33-up.1 | [session-upload-progress-counters.patch](patches/7.0/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 7.1 | 7.1.33-up.1 | [session-upload-progress-counters.patch](patches/7.1/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 7.2 | 7.2.34-up.1 | [session-upload-progress-counters.patch](patches/7.2/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 7.3 | 7.3.33-up.1 | [session-upload-progress-counters.patch](patches/7.3/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 7.4 | 7.4.33-up.1 | [session-upload-progress-counters.patch](patches/7.4/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.0 | 8.0.30-up.1 | [session-upload-progress-counters.patch](patches/8.0/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.1 | 8.1.34-up.1 | [session-upload-progress-counters.patch](patches/8.1/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.2 | 8.2.34-up.1 | [session-upload-progress-counters.patch](patches/8.2/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.3 | 8.3.35-up.1 | [session-upload-progress-counters.patch](patches/8.3/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.4 | 8.4.26-up.1 | [session-upload-progress-counters.patch](patches/8.4/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109618](https://jackalsyn.com/posts/php-up-2026.html) | 8.5 | 8.5.11-up.1 | [session-upload-progress-counters.patch](patches/8.5/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 7.0 | 7.0.33-up.1 | [session-upload-progress-counters.patch](patches/7.0/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 7.1 | 7.1.33-up.1 | [session-upload-progress-counters.patch](patches/7.1/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 7.2 | 7.2.34-up.1 | [session-upload-progress-counters.patch](patches/7.2/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 7.3 | 7.3.33-up.1 | [session-upload-progress-counters.patch](patches/7.3/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 7.4 | 7.4.33-up.1 | [session-upload-progress-counters.patch](patches/7.4/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.0 | 8.0.30-up.1 | [session-upload-progress-counters.patch](patches/8.0/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.1 | 8.1.34-up.1 | [session-upload-progress-counters.patch](patches/8.1/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.2 | 8.2.34-up.1 | [session-upload-progress-counters.patch](patches/8.2/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.3 | 8.3.35-up.1 | [session-upload-progress-counters.patch](patches/8.3/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.4 | 8.4.26-up.1 | [session-upload-progress-counters.patch](patches/8.4/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
-| [CVE-2026-109619](https://jackalsyn.com/posts/php-up-2026.html) | 8.5 | 8.5.11-up.1 | [session-upload-progress-counters.patch](patches/8.5/session-upload-progress-counters.patch) | [smoke.py](tests/smoke.py), [upload.php](tests/fixtures/upload.php) | independent |
+No independently verified CVE fixes are claimed yet. See the reported issues below.
 
 <!-- phpup:fixed-cves:end -->
 
 ### Reported upload-progress issues
 
-The [third-party report](https://jackalsyn.com/posts/php-up-2026.html) attributes
-cached-counter lifetime issues in `ext/session` to `CVE-2026-109618` and
-`CVE-2026-109619`. The table above records independent corrections for PHP 7.0
-through 8.5. Their official attribution remains under investigation, and the
-entries do not claim coverage for PHP 5.6 or for unrelated code paths.
+The [third-party bundle](https://jackalsyn.com/posts/php-up-2026.html) was corrected
+on 2026-10-21:
 
-The checked PHP 8.2.34 source retains a reference to the progress root array before
-publishing it into session data. PHP 5.6 uses a different zval layout. The presence
-of cached pointers by itself does not establish the article's claimed default-
-configuration use-after-free or remote-code-execution chain.
+- The cached-pointer chain is **dead at the addref**. `Z_TRY_ADDREF(progress->data)`
+  keeps the target array alive, so the stale bucket pointers do not create a UAF.
+  `CVE-2026-109619` maps to this non-vulnerable chain in the corrected research.
+- The real memory-safety issue is a serialize-state cross-request UAF at
+  `var.c:756` (`data->n += 1` in `php_add_var_hash`). A pre-RINIT OOM leaves
+  `BG(serialize)` pointing at freed request memory; a later request on a surviving
+  prefork worker reuses it. The corrected research rates it as non-RCE and
+  prefork-only (php-fpm, LSAPI and CGI exit on the arming request).
+- `CVE-2026-109618` is the provisional mapping for the serialize-state UAF; vendor
+  confirmation is still pending.
+
+Our local harness reproduced the orphan and the pre-RINIT reuse. The reset patch
+blocks that reuse; the counter patch remains independent hardening.
 
 ### Serializer context lifecycle
 
-A separate request-lifecycle issue was reproduced locally: an OOM can leave
-`BG(serialize)` / `BG(unserialize)` referencing request memory, and a pre-RINIT
-multipart can reuse that context before RINIT clears it. PHP 8.2 build `up.3`
-includes `patches/8.2/serializer-context-reset.patch`, which resets those contexts
-at the start of request startup. It is independent of the counter fixes and is not
-yet mapped to a CVE.
+The reset is included in the PHP 5.6 and 7.0 through 8.5 patch series as
+`serializer-context-reset.patch`. It resets `BG(serialize)`, `BG(unserialize)` and
+`serialize_lock` at the start of request startup, before `php_hash_environment()`,
+so a worker cannot reuse an orphaned context from a previous request. PHP 8.2
+(`up.3`) was validated end-to-end with the instrumented harness; PHP 7.0 and 8.5
+were built and smoke-tested; PHP 5.6 was built and smoke-tested under amd64
+emulation. The remaining branches use the same change and are validated by patch
+application and their CI build. This is an independent correction, not an official
+PHP patch.
 
 PHP's [official announcement](https://www.php.net/archive/2026.php#2026-10-20-1)
 schedules two critical fixes for 21 October 2026 at 14:00 UTC; the article's

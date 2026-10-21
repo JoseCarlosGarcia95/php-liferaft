@@ -1,2 +1,3 @@
 # Patches apply to PHP 7.0 in the order listed here.
 session-upload-progress-counters.patch
+serializer-context-reset.patch

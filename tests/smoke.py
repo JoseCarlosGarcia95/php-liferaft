@@ -39,6 +39,16 @@ def read_exact(connection, length):
     return bytes(result)
 
 
+def robust_request(*args, **kwargs):
+    for attempt in range(4):
+        try:
+            return request(*args, **kwargs)
+        except (ConnectionResetError, BrokenPipeError, TimeoutError):
+            if attempt == 3:
+                raise
+            time.sleep(0.5)
+
+
 def request(port, body, boundary, cleanup, sid, *, seed=False, defaults=False, serializer="php"):
     settings = f"session.upload_progress.cleanup={cleanup}\nsession.serialize_handler={serializer}"
     if not defaults:
@@ -124,7 +134,7 @@ def smoke(cli_image, fpm_image, version, final_counter=False, module=None):
             raise RuntimeError("FPM did not start")
         body, boundary = multipart()
         for defaults, cleanup, serializer in ((True, 1, "php"), (False, 0, "php"), (False, 1, "php"), (False, 0, "php_binary"), (False, 0, "php_serialize")):
-            result = request(port, body, boundary, cleanup, uuid.uuid4().hex, defaults=defaults, serializer=serializer)
+            result = robust_request(port, body, boundary, cleanup, uuid.uuid4().hex, defaults=defaults, serializer=serializer)
             assert result["version"] == version, result
             assert result["files"] == {"first": {"size": 131072, "error": 0}, "second": {"size": 31, "error": 0}}, result
             if cleanup:
@@ -137,8 +147,8 @@ def smoke(cli_image, fpm_image, version, final_counter=False, module=None):
                     assert progress["bytes_processed"] == len(body), result
             results.append({"defaults": defaults, "cleanup": cleanup, "serializer": serializer, "progress": result["progress"]})
         sid = uuid.uuid4().hex
-        assert request(port, b"", boundary, 0, sid, seed=True)["seeded"]
-        cancelled = request(port, body, boundary, 0, sid)
+        assert robust_request(port, b"", boundary, 0, sid, seed=True)["seeded"]
+        cancelled = robust_request(port, body, boundary, 0, sid)
         assert not cancelled["files"] or any(file["error"] == 8 for file in cancelled["files"].values()), cancelled
     finally:
         logs = docker("logs", container)
