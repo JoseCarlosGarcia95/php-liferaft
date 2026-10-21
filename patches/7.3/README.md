@@ -15,10 +15,11 @@ early and refuses to run after RINIT.
 
 ### Scope and limitations
 
-This is **not** a complete backport. It does not include the Zend allocator/OOM
-state redesign for CVE-2026-109618 or the `incomplete_classes_only` serializer
-mode. Treat the image as EOL hardening for the stale-global-state issue, not as
-equivalent to an official security release.
+This is **not** a complete backport: it does not include the Zend allocator/OOM
+state redesign for CVE-2026-109618. It does include the pre-RINIT session guards
+and the `incomplete_classes_only` serializer mode, so upload-progress updates no
+longer invoke user code while decoding or encoding session objects. Treat the
+image as EOL hardening, not as equivalent to an official security release.
 
 ### Verification
 
