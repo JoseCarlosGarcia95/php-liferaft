@@ -73,3 +73,38 @@ sends a second multipart. Before the patch the second request logs
 `SER_INIT level=1 data=<stale pointer>` before RINIT; after the patch it logs
 `RINIT_BEFORE ser=0` and a fresh `SER_INIT level=0`, while normal sessions and
 serialization continue to work.
+
+### ASAN A/B evidence (lab)
+
+An ASAN build of the unmodified PHP 8.2.34 sources (`USE_ZEND_ALLOC=0`,
+`max_allocation_size_mb=4`) reproduces the cross-request reuse deterministically:
+
+- R1 seeds a ~3.95 MB session, then OOM-aborts inside the session encode
+  (`smart_str` growth) during the pre-RINIT multipart parse, leaving
+  `BG(serialize).level = 1` with `data` pointing at the request's
+  `php_serialize_data`.
+- R2, the first request afterwards on the same worker, reuses that context in
+  `ps_srlzr_encode_php_serialize()` while still inside `php_hash_environment()`.
+
+Without this patch the R2 request dies with:
+
+```text
+ERROR: AddressSanitizer: heap-use-after-free ... READ of size 4
+    #0 php_add_var_hash              ext/standard/var.c:669
+    #1 php_var_serialize_intern      ext/standard/var.c:1006
+    #3 ps_srlzr_encode_php_serialize ext/session/session.c:855
+    ...
+   #14 php_hash_environment / php_request_startup   (pre-RINIT)
+allocated by: php_var_serialize_init var.c:1284 (R1, session encode)
+```
+
+(`var.c:669` is PHP 8.2.34's location of the `data->n += 1` access that the
+corrected research reports as `var.c:756` on 8.4.4.)
+
+With this patch applied to the identical build, the identical R1/R2 sequence
+returns HTTP 200 for R2 and raises no ASAN error: the reset clears the stale
+context before `php_hash_environment()` can serialize through it.
+
+The deterministic OOM placement and the between-requests free are lab-only
+harness aids that emulate the production Zend allocator (`memory_limit` OOM
+bailout and request sweep). The fix patch itself contains none of them.
