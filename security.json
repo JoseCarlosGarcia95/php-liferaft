@@ -8,7 +8,7 @@
       "url": "https://jackalsyn.com/posts/php-up-2026.html",
       "summary": "Reported session.upload_progress cached-counter lifetime issues",
       "status": "unverified",
-      "notes": "Official advisory mapping is pending. Independent corrections cover PHP 7.0 through 8.5; PHP 5.6 uses standalone counter zvals and does not reproduce the cached-bucket defect."
+      "notes": "Official advisory mapping is pending. Independent counter corrections cover PHP 7.0 through 8.5; PHP 5.6 uses standalone counter zvals and does not reproduce the cached-bucket defect. A separate request-lifecycle issue (orphaned BG(serialize)/BG(unserialize) contexts reused pre-RINIT) is addressed for PHP 8.2 by serializer-context-reset.patch and is not yet mapped to a CVE."
     }
   ],
   "fixes": [

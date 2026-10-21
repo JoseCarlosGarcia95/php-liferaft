@@ -75,6 +75,15 @@ publishing it into session data. PHP 5.6 uses a different zval layout. The prese
 of cached pointers by itself does not establish the article's claimed default-
 configuration use-after-free or remote-code-execution chain.
 
+### Serializer context lifecycle
+
+A separate request-lifecycle issue was reproduced locally: an OOM can leave
+`BG(serialize)` / `BG(unserialize)` referencing request memory, and a pre-RINIT
+multipart can reuse that context before RINIT clears it. PHP 8.2 build `up.3`
+includes `patches/8.2/serializer-context-reset.patch`, which resets those contexts
+at the start of request startup. It is independent of the counter fixes and is not
+yet mapped to a CVE.
+
 PHP's [official announcement](https://www.php.net/archive/2026.php#2026-10-20-1)
 schedules two critical fixes for 21 October 2026 at 14:00 UTC; the article's
 identifiers must be reconciled with the official advisories once published.
