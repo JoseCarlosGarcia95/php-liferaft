@@ -109,10 +109,13 @@ jobs:
           tags=$(python3 scripts/verify.py --branch "$BRANCH" --print-tags)
           cli=$(printf '%s' "$tags" | jq -r .cli)
           fpm=$(printf '%s' "$tags" | jq -r .fpm)
+          apache=$(printf '%s' "$tags" | jq -r .apache)
           version=$(printf '%s' "$tags" | jq -r .version)
           revision=$(printf '%s' "$tags" | jq -r .revision)
-          for variant in cli fpm; do
-            if [ "$variant" = "cli" ]; then image=$cli; else image=$fpm; fi
+          for variant in cli fpm apache; do
+            if [ "$variant" = "cli" ]; then image=$cli
+            elif [ "$variant" = "fpm" ]; then image=$fpm
+            else image=$apache; fi
             docker tag "$image" "$IMAGE_PREFIX:${RELEASE_TAG}-${version}-up.${revision}-${variant}"
             docker tag "$image" "$IMAGE_PREFIX:${BRANCH}-${variant}"
             docker push "$IMAGE_PREFIX:${RELEASE_TAG}-${version}-up.${revision}-${variant}"

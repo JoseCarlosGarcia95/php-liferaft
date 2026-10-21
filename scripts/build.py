@@ -51,7 +51,15 @@ def main():
                 "--build-arg", f"MAKE_JOBS={os.environ.get('MAKE_JOBS', '4')}",
                 "--build-arg", f"REPOSITORY_REVISION={revision}", "."]
             subprocess.run(command, cwd=root, check=True)
-        print(json.dumps({"cli": base + "-cli", "fpm": base + "-fpm", "sdk": sdk}))
+        apache = base + "-apache"
+        extra_configure = " ".join(entry["configure"])
+        subprocess.run(image_common + ["-f", "docker/apache.Dockerfile", "--target", "apache", "-t", apache, *arguments,
+            "--build-arg", f"EXTRA_CONFIGURE={extra_configure}",
+            "--build-arg", f"BASE_IMAGE={config['build']['base_image']}",
+            "--build-arg", f"DEBIAN_SNAPSHOT={config['build']['debian_snapshot']}",
+            "--build-arg", f"MAKE_JOBS={os.environ.get('MAKE_JOBS', '4')}",
+            "--build-arg", f"REPOSITORY_REVISION={revision}", "."], cwd=root, check=True)
+        print(json.dumps({"cli": base + "-cli", "fpm": base + "-fpm", "apache": apache, "sdk": sdk}))
     else:
         output = root / "dist" / args.branch / "session" / architecture
         output.mkdir(parents=True, exist_ok=True)

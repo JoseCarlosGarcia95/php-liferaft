@@ -32,6 +32,7 @@ def image_names(root, config, branch):
         "architecture": architecture,
         "cli": base + "-cli",
         "fpm": base + "-fpm",
+        "apache": base + "-apache",
         "sdk": f"phpup:{entry['version']}-{metadata['abi_id'][:12]}-{architecture}-sdk",
         "metadata": metadata,
         "archive": str(archive),
@@ -60,6 +61,9 @@ def verify(root, config, branch, module, build):
             raise ValueError("session module was built for a different SDK/source identity")
         command += ["--module", str(module_path)]
     subprocess.run(command, cwd=root, check=True)
+    subprocess.run([sys.executable, str(root / "tests/apache_smoke.py"),
+                    "--image", names["apache"], "--version", names["version"]],
+                   cwd=root, check=True)
     names["module"] = str(module_path) if module else None
     return names
 
@@ -80,7 +84,7 @@ def main():
     for branch in branches:
         if args.print_tags:
             names = image_names(ROOT, config, branch)
-            results.append({key: names[key] for key in ("branch", "version", "revision", "platform", "cli", "fpm", "sdk")})
+            results.append({key: names[key] for key in ("branch", "version", "revision", "platform", "cli", "fpm", "apache", "sdk")})
         else:
             results.append(verify(ROOT, config, branch, args.module, args.build))
     print(json.dumps(results if args.all else results[0], indent=2))

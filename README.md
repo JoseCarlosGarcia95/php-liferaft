@@ -1,6 +1,6 @@
 # php2shell-temporal-bugfix
 
-Inspectable PHP security backports, source archives, and Docker CLI/FPM builds.
+Inspectable PHP security backports, source archives, and Docker CLI, FPM, and Apache + mod_php builds.
 This personal project covers final EOL releases and selected current PHP releases.
 It is independently maintained; project revisions describe the exact included
 patches rather than implying official PHP support or complete vulnerability coverage.
@@ -114,36 +114,42 @@ scripts/build-images.sh 8.2
 python3 scripts/verify.py --branch 8.2
 ```
 
-The build produces CLI, FPM, and a matching development SDK. Published builds target
-`linux/amd64`. To test locally on an ARM machine:
+The build produces CLI, FPM, Apache + mod_php, and a matching development SDK.
+Published builds target `linux/amd64`. To test locally on an ARM machine:
 
 ```sh
 PLATFORM=linux/arm64 scripts/build-images.sh 8.2
-python3 scripts/verify.py --branch 8.2 --platform linux/arm64
+PLATFORM=linux/arm64 python3 scripts/verify.py --branch 8.2
 ```
 
-Local runtime tags are `phpup:<upstream>-up.<revision>-cli` and `-fpm`; a local ARM
-override adds `-arm64` before the variant. Exact image names are recorded in
-`dist/<branch>/images-<architecture>.json`. The SDK is tagged with the upstream
-version, core/toolchain identity, and architecture.
+Local runtime tags are `phpup:<upstream>-up.<revision>-cli`, `-fpm`, and
+`-apache`; a local ARM override adds `-arm64` before the variant. The SDK is
+tagged with the upstream version, core/toolchain identity, and architecture.
 
 FPM listens on port 9000, runs in the foreground, and sends logs to stderr. Its
 workers use `www-data`. It speaks FastCGI and requires an HTTP frontend for web use.
 
+The Apache variant uses the prefork MPM and mod_php, listens on port 80, serves
+`/var/www/html`, and logs to stderr. Its session support is built in rather than
+shared. The CLI/FPM/SDK builds keep session shared so `session.so` can be rebuilt
+in isolation.
+
 ### Initial extension set
 
-Images contain the standard runtime, JSON, filter, tokenizer, and **shared session
-support**. JSON is built in on PHP 8 and explicitly enabled on older branches.
-The minimal recipes avoid pulling legacy TLS/database/image dependencies into
-these initial images. Enable additional extensions through reviewed branch build
-options and update the runtime dependency list and smoke tests accordingly.
+CLI/FPM images contain the standard runtime, JSON, filter, tokenizer, and
+**shared session support**; the Apache image links session statically. JSON is
+built in on PHP 8 and explicitly enabled on older branches. The minimal recipes
+avoid pulling legacy TLS/database/image dependencies into these initial images.
+Enable additional extensions through reviewed branch build options and update the
+runtime dependency list and smoke tests accordingly.
 
 The SDK also contains CGI, PHP headers, `phpize`, `php-config`, compiler tools,
 Valgrind, and the matching source tree for upstream regression tests.
 
 ## Rebuild only session.so
 
-After building the matching SDK once:
+After building the matching SDK once (CLI/FPM build; Apache uses a separate
+static-session build):
 
 ```sh
 scripts/build-session.sh 8.2
